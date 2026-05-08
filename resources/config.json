@@ -1,20 +1,24 @@
 {
   "quick_acces_directories": [
     {
-      "name": "college",
-      "path": "/home/guts/documents/college/year-4-sem-1"
+      "name": "navigate",
+      "path": "/home/guts/projects/personal/navigate"
     },
     {
-       "name": "projects",
-       "path": "/home/guts/projects"
+      "name": "projects",
+      "path": "/home/guts/projects"
     },
     {
-        "name": "cafe",
-        "path": "/home/guts/projects/college/cs4298-theory-and-practice-of-software-design/cafe-pos-and-delivery.git"
+      "name": "fyp",
+      "path": "/home/guts/projects/fyp"
     },
     {
-        "name": "fyp",
-        "path": "/home/guts/projects/fyp"
+      "name": "np-assignment-2-proj",
+      "path": "/home/guts/projects/college/cs4287-neurol-computing/assignment-2/DQN_ATARY.git"
+    },
+    {
+      "name": "nd-assignment-2-docs",
+      "path": "/home/guts/documents/college/year-4-sem-1/cs4287-neurol-computing/assignment-2"
     }
   ]
 }
