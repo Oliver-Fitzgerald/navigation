@@ -15,8 +15,8 @@ FetchContent_Declare(
     GIT_REPOSITORY git@github.com:nlohmann/json.git
     GIT_TAG v3.11.3
 )
-
 FetchContent_MakeAvailable(json)
+
 # Compilation
 add_executable(navigate ../src/navigate.cc)
 target_link_libraries(navigate PRIVATE nlohmann_json::nlohmann_json)
