@@ -3,16 +3,17 @@
 #include <fstream>
 #include <stdexcept>
 #include <cstdlib>
+#include <string>
 #include <unistd.h>  // for chdir()
 
 struct directory {
-    std::string abreviation;
+    std::string abbreviation;
     std::string name;
     std::string path;
 };
 
 int readConfig(const char* path, directory (&directories)[10]);
-void highligthUnique(directory (&directories)[10], int count);
+void highlightUnique(directory (&directories)[10], int count);
 
 /*
  * navigate
@@ -20,7 +21,7 @@ void highligthUnique(directory (&directories)[10], int count);
  */
 int main(int argc, char** argv) {
 
-    const char* configPath = "/home/guts/projects/personal/navigate/resources/config.json";
+    const char* configPath = "/home/ollie/projects/personal/navigation/resources/config.json";
     directory directories[10];
     int count;
 
@@ -31,14 +32,14 @@ int main(int argc, char** argv) {
         std::cout << exception.what();
     }
 
-    // Higligth Unique Segment of Name
-    highligthUnique(directories, count);
+    // Highlight Unique Segment of Name
+    highlightUnique(directories, count);
 
     std::cout << "\nNavigate Menu\n\n";
     for (int index = 0; index < 10 && !directories[index].name.empty(); index++) {
 
         std::cout << "Name: " << directories[index].name << "\n";
-        std::cout << "Absoloute Path: " << directories[index].path << "\n\n";
+        std::cout << "Absolute Path: " << directories[index].path << "\n\n";
     }
     
     std::string selection;
@@ -46,13 +47,13 @@ int main(int argc, char** argv) {
     std::cin >> selection;
 
     for (int index = 0; index < std::size(directories); index++) {
-        if (directories[index].abreviation == selection) {
+        if (directories[index].abbreviation == selection) {
 
-            std::ofstream out("/home/guts/projects/personal/navigate/src/navigate_cmd.sh");
+            std::ofstream out("/home/ollie/projects/personal/navigation/navigate_cmd.sh");
             out << "cd " << directories[index].path << "\n";
+            std::cout << "Navigating to path: " << directories[index].path << "\n";
             out.close();
             std::cout << "Run: source navigate_cmd.sh\n";
-
         }
     }
     return 0;
@@ -67,11 +68,11 @@ int readConfig(const char* path, directory (&directories)[10]) {
     using json = nlohmann::json;
 
     std::ifstream file(path);
-    json data = json::parse(file)["quick_acces_directories"];
+    json data = json::parse(file)["quick_access_directories"];
     int count;
 
     if (std::size(data) > 10) {
-        throw std::length_error("Only the first 10 entries of the quick_acces_directories will be read");
+        throw std::length_error("Only the first 10 entries of the quick_access_directories will be read");
     }
 
     for (int index = 0; index < std::size(data) && index < 10; index++) {
@@ -83,11 +84,11 @@ int readConfig(const char* path, directory (&directories)[10]) {
 }
 
 /**
- * highligthUnique
- * Highligths the unique elements of the begining of each directory.name
+ * highlightUnique
+ * highlights the unique elements of the begining of each directory.name
  * @param directories The array of 10 directories
  */
-void highligthUnique(directory (&directories)[10], int count) {
+void highlightUnique(directory (&directories)[10], int count) {
 
     for (int i = 0; i < count; i++) {
         
@@ -123,7 +124,7 @@ void highligthUnique(directory (&directories)[10], int count) {
 
         }
 
-        // Finally highligth unique charachters
+        // Finally highlight unique characters
         std::string directoryName = directories[i].name;
 
         directories[i].name.clear();
@@ -138,7 +139,7 @@ void highligthUnique(directory (&directories)[10], int count) {
             directories[i].name[x] = directoryName[y];
             
             if (x - 6 == matches) {
-                directories[i].abreviation = directoryName.substr(0, y + 1);
+                directories[i].abbreviation = directoryName.substr(0, y + 1);
                 std::strcat(&directories[i].name[x], "\x1b[0m)");
                 x += 5;
             }
