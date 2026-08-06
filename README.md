@@ -1,10 +1,18 @@
 # navigate
 
-A commmand that returns a list of frequently entered directories that you can jump to
+A command that returns a list of frequently entered directories that you can jump to
 
 ## Build Instructions
 
-TODO !!!
+```cd build;```
+
+```cmake ../;```
+
+```make;```
+
+Finally add the following alias command to your bashrc
+
+```alias nav=navigation;navigation_cmd;```
 
 ## Documentation
 

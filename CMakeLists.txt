@@ -18,5 +18,5 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 # Compilation
-add_executable(navigate ../src/navigate.cc)
+add_executable(navigate ../src/main/cpp/navigate.cpp)
 target_link_libraries(navigate PRIVATE nlohmann_json::nlohmann_json)

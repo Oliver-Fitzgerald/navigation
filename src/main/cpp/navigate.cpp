@@ -21,7 +21,7 @@ void highlightUnique(directory (&directories)[10], int count);
  */
 int main(int argc, char** argv) {
 
-    const char* configPath = "/home/ollie/projects/personal/navigation/resources/config.json";
+    const char* configPath = "/home/ollie/projects/personal/navigation/src/main/resources/directories.json";
     directory directories[10];
     int count;
 
@@ -29,11 +29,16 @@ int main(int argc, char** argv) {
     try {
         count  = readConfig(configPath, directories);
     } catch (std::length_error& exception) {
-        std::cout << exception.what();
+        std::cerr << exception.what();
     }
 
-    // Highlight Unique Segment of Name
-    highlightUnique(directories, count);
+    try {
+        // Highlight Unique Segment of Name
+        highlightUnique(directories, count);
+    } catch (std::exception& exception) {
+        std::cout << "[WARNING] Failed to highlight unique elements of target names";
+        // std::cerr << exception.what();
+    }
 
     std::cout << "\nNavigate Menu\n\n";
     for (int index = 0; index < 10 && !directories[index].name.empty(); index++) {
@@ -49,7 +54,7 @@ int main(int argc, char** argv) {
     for (int index = 0; index < std::size(directories); index++) {
         if (directories[index].abbreviation == selection) {
 
-            std::ofstream out("/home/ollie/projects/personal/navigation/navigate_cmd.sh");
+            std::ofstream out("/home/ollie/projects/personal/navigation/src/main/resources/navigate_cmd.sh");
             out << "cd " << directories[index].path << "\n";
             std::cout << "Navigating to path: " << directories[index].path << "\n";
             out.close();
@@ -72,7 +77,7 @@ int readConfig(const char* path, directory (&directories)[10]) {
     int count;
 
     if (std::size(data) > 10) {
-        throw std::length_error("Only the first 10 entries of the quick_access_directories will be read");
+        std::cout << "[INFO] quick_access_directories exceeds 10 entries, only the first 10 will be read";
     }
 
     for (int index = 0; index < std::size(data) && index < 10; index++) {
@@ -90,61 +95,18 @@ int readConfig(const char* path, directory (&directories)[10]) {
  */
 void highlightUnique(directory (&directories)[10], int count) {
 
-    for (int i = 0; i < count; i++) {
-        
-        int matches = 0;
-        int last = 0;
-        int index = 0;
+    std::string one = "(\x1b[32m";
+    std::string two = "\x1b[0m)";
 
-        for (int j = 0; j < count ; j++) {
-
-            if (i == j) {
-                continue;
-            }
-
-            if (directories[i].name[index] == directories[j].name[index]) {
-                matches++;
-            }
-
-            if (j + 1 == count) {
-                j++;
-                if (directories[i].name[index] == directories[j + 1].name[index]) {
-                    matches++;
-                }
-            }
-
-            if (matches == last) {
-                break;
-            }
-            else {
-                j = -1;
-                index++;
-                last = matches;
-            }
-
-        }
-
-        // Finally highlight unique characters
-        std::string directoryName = directories[i].name;
-
-        directories[i].name.clear();
-        directories[i].name.resize(50);
-
-        std::strcat(&directories[i].name[0], "(\x1b[32m");
-
-        int y = 0;
-        for (int x = 6; x < std::size(directoryName) + 11; x++) {
-
-
-            directories[i].name[x] = directoryName[y];
-            
-            if (x - 6 == matches) {
-                directories[i].abbreviation = directoryName.substr(0, y + 1);
-                std::strcat(&directories[i].name[x], "\x1b[0m)");
-                x += 5;
-            }
-            y++;
-        }
+    // initialization
+    for (int index = 0; index < count; index++) {
+        directories[index].name.insert(directories[index].name.begin(),one.begin(),one.end());
     }
 
+    // construct binary tree of unique characters  
+
+    // highlight unique characters
+    for (int index = 0; index < count; index++) {
+        directories[index].name.insert(directories[index].name.end(),two.begin(),two.end());
+    }
 }

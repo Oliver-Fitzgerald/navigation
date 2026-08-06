@@ -1,0 +1,28 @@
+{
+  "quick_access_directories": [
+    {
+      "name": "a",
+      "path": "/home/ollie"
+    },
+    {
+      "name": "ab",
+      "path": "/home/ollie"
+    },
+    {
+      "name": "ac",
+      "path": "/home/ollie"
+    },
+    {
+      "name": "b",
+      "path": "/home/ollie"
+    },
+    {
+      "name": "c",
+      "path": "/home/ollie"
+    },
+    {
+      "name": "doom",
+      "path": "/home/ollie"
+    }
+  ]
+}
