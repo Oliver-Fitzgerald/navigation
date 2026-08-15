@@ -1,13 +1,19 @@
-/* BinaryTree
+/* 
+ * BinaryTree
  * A binary tree data structure
  */
 
-public struct BinaryTree<T> {
-    private Node* rootNode;
+// standard libary
+#include <vector>
 
-    public struct Node<T> {
-        T* data;
-        Node* left;
-        Node* right;
+template <typename T>
+class Composite {
+private:
+    std::vector<T> elements;
+
+public:
+    void hasNext(T element) {
     }
-}
+    void next(T element) {
+    }
+};
