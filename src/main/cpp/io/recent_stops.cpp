@@ -14,6 +14,8 @@
 // gnu
 #include <readline/history.h>
 
+void read_target_directories(std::vector<std::string>& commands);
+
 static const char* HISTORY_PATH = "/home/ollie/.bash_history";
 static const char* CONFIG_PATH = "/home/ollie/projects/personal/navigation/src/main/resources/recent_directories.json";
 
@@ -29,64 +31,52 @@ int main(int argc, char** argv) {
     }
 
     // read cd commands from history
-    std::vector<std::string> cdCommands;
+    std::vector<std::string> commands;
+    read_target_directories(commands);
+
+    for (std::string& entry : commands)
+        std::cout << "target directory: " << entry << "\n";
+
+    // get absolute path (if not explicit in command) TODO
+    // update directory frequency of visits TODO
+    return 0;
+}
+
+/**
+ * read_target_directories
+ * Reads in the target directory of all executed cd commands in this session
+ *
+ * @param commands The vector to store executed commands
+ */
+void read_target_directories(std::vector<std::string>& commands)
+{
     while (!history_search_prefix("cd ",1))
     {
         HIST_ENTRY* entry = current_history();
-        cdCommands.push_back(std::string(entry->line));
+        commands.push_back(std::string(entry->line));
 
         next_history();
     }
 
-    // strip cd from entries
-    for (std::string& entry : cdCommands)
+    // strip 'cd ' from entries
+    for (std::string& entry : commands)
         entry = entry.substr(3);
 
-    // replace '..' entries
-    std::remove_if(cdCommands.begin(), cdCommands.end(),
-        [](std::string entry) {
-            return entry.empty() || entry.back() != '/' || entry.front() != ' ' ? true : false;
-        }),cdCommands.end());
-
-    for (std::string& entry : cdCommands)
-        std::cout << "'" << entry << "'\n"; = entry.substr(3);
-
-    return 0;
-    // // filter invalid entries
-    // // ||  
-    // cdCommands.erase(std::remove_if(cdCommands.begin(), cdCommands.end(),
-    //                  [](std::string entry) {
-    //                     return entry.empty() || entry.back() != '/' || entry.front() != ' ' ? true : false;
-    //                 }), cdCommands.end());
-    //
-    // for (std::string entry : cdCommands)
-    //     std::cout << "\"" << entry << "\"\n";
-    // return 0;
-    //
-    //
-    // // remove invalid instances
-    // cdCommands.erase(std::remove_if(cdCommands.begin(), cdCommands.end(),
-    //                  [](std::string entry) {
-    //
-    //                     if (entry.back() != '/' 
-    //                      || entry.size() <= 6)
-    //                      // || entry.substr(entry.size() - 3, entry.size()) == std::string("../"))
-    //                         return false;
-    //                     else 
-    //                         return true;
-    //                  }), cdCommands.end());
-    //
-    // // get target directory
-    // for (std::string entry : cdCommands)
-    // {
-    //     // entry.pop_back();
-    //     std::cout << entry << "\n";
-    //     std::cout << entry.substr(entry.size() - 3, entry.size()) << "\n";
-    //     // entry = entry.substr(entry.find_last_of('/'), entry.size()); 
-    // }
-    //
-    // // update directory frequency of visits
-    // return 0;
+    // read in target directories
+    commands.erase(std::remove_if(commands.begin(),commands.end(),
+    [](std::string& entry) {
+        if (entry.empty() || entry.back() != '/' || entry == "../")
+        {
+            return true;
+        }
+        else if (entry.front() != '~' && entry.front() != '/') 
+        {
+            entry.pop_back();
+            if (entry.find('/') != -1)
+                entry = entry.substr(entry.find_last_of('/') + 1, entry.size() - 1);
+        }
+        return false;
+    }), commands.end());
 }
 
 /**
@@ -106,3 +96,4 @@ void update_recent_directories() {
     }
     std::cout << "2\n";
 }
+
