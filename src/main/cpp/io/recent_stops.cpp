@@ -15,11 +15,13 @@
 #include <readline/history.h>
 
 void read_target_directories(std::vector<std::string>& commands);
+void resolve_absolute_path(std::vector<std::string>& directories);
 
 static const char* HISTORY_PATH = "/home/ollie/.bash_history";
 static const char* CONFIG_PATH = "/home/ollie/projects/personal/navigation/src/main/resources/recent_directories.json";
 
 int main(int argc, char** argv) {
+
     // initialization
     int error;
     using_history();
@@ -31,13 +33,12 @@ int main(int argc, char** argv) {
     }
 
     // read cd commands from history
-    std::vector<std::string> commands;
-    read_target_directories(commands);
-
-    for (std::string& entry : commands)
-        std::cout << "target directory: " << entry << "\n";
+    std::vector<std::string> directories;
+    read_target_directories(directories);
 
     // get absolute path (if not explicit in command) TODO
+    resolve_absolute_path(directories); 
+
     // update directory frequency of visits TODO
     return 0;
 }
@@ -80,6 +81,22 @@ void read_target_directories(std::vector<std::string>& commands)
 }
 
 /**
+ * resolve_absolute_path
+ * Resolves the absolute path for target directories for which only a relative
+ * path was used.
+ *
+ * @param directories All target directories of the cd command
+ */
+void resolve_absolute_path(std::vector<std::string>& directories) {
+    for (std::string& entry: directories)
+    {
+        if (entry.front() == '~' || entry.front() == '/') continue;
+
+        // Get absolute path of a directory
+    }
+}
+
+/**
  * update_recent_directories
  * increments existing directory entries if present otherwise appends
  * a new entry to recent_directories.json
@@ -96,4 +113,3 @@ void update_recent_directories() {
     }
     std::cout << "2\n";
 }
-
