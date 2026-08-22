@@ -10,17 +10,21 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <regex>
+#include <filesystem>
+#include <iterator>
 // gnu
 #include <readline/history.h>
 
 void read_target_directories(std::vector<std::string>& commands);
 void resolve_absolute_path(std::vector<std::string>& directories);
+void collapse_entry(std::string& path);
+void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::iterator end);
 
-static const char* HISTORY_PATH = "/home/ollie/.bash_history";
+static const char* HISTORY_PATH = "/home/ollie/.history";
 static const char* CONFIG_PATH = "/home/ollie/projects/personal/navigation/src/main/resources/recent_directories.json";
 
 int main(int argc, char** argv) {
+    std::cout << "Executing navigation clean up\n";
 
     // initialization
     int error;
@@ -51,7 +55,7 @@ int main(int argc, char** argv) {
  */
 void read_target_directories(std::vector<std::string>& commands)
 {
-    while (!history_search_prefix("cd ",1))
+    while (!history_search_prefix("cd",1))
     {
         HIST_ENTRY* entry = current_history();
         commands.push_back(std::string(entry->line));
@@ -59,25 +63,19 @@ void read_target_directories(std::vector<std::string>& commands)
         next_history();
     }
 
-    // strip 'cd ' from entries
+    // extract target directory from entries
     for (std::string& entry : commands)
-        entry = entry.substr(3);
+    {
+        // std::cout << "raw entry: " << entry << "\n";
+        if (entry == "cd") // TODO trim white space
+            entry = "/home/ollie/";
+        else
+            entry = entry.substr(3);
 
-    // read in target directories
-    commands.erase(std::remove_if(commands.begin(),commands.end(),
-    [](std::string& entry) {
-        if (entry.empty() || entry.back() != '/' || entry == "../")
-        {
-            return true;
-        }
-        else if (entry.front() != '~' && entry.front() != '/') 
-        {
-            entry.pop_back();
-            if (entry.find('/') != -1)
-                entry = entry.substr(entry.find_last_of('/') + 1, entry.size() - 1);
-        }
-        return false;
-    }), commands.end());
+        if (entry.front() == '~')
+            entry.replace(0,2,std::string("/home/ollie/"));
+        // std::cout << "read entry: " << entry << "\n";
+    }
 }
 
 /**
@@ -88,13 +86,98 @@ void read_target_directories(std::vector<std::string>& commands)
  * @param directories All target directories of the cd command
  */
 void resolve_absolute_path(std::vector<std::string>& directories) {
+    namespace fs = std::filesystem;
+
+    std::string entrypoint(std::getenv("SHELL_ENTRYPOINT"));
+    if (entrypoint.back() != '/')
+        entrypoint.push_back('/');
+    std::error_code errorCode;
+
     for (std::string& entry: directories)
     {
-        if (entry.front() == '~' || entry.front() == '/') continue;
+        //  validate absolute path exists
+        if (entry.front() == '/') {
 
-        // Get absolute path of a directory
+            fs::path directoryPath(entry);
+            fs::directory_entry directory_entry(directoryPath, errorCode);
+
+        // construct absolute path for relative paths from entrypoint
+        } else {
+
+            entry = entrypoint + entry;
+            fs::path directoryPath(entry);
+            fs::directory_entry directory_entry(directoryPath, errorCode);
+        }
+
+        std::cout << "entry: " << entry << "\n";
+        std::cout << "error value: " << errorCode.value() << "\n";
+        std::cout << "error value: " << errorCode.value() << "\n";
+
+        if (errorCode.value() != 0) continue;
+        entrypoint = entry;
+
+        // collapse '..' 
+        collapse_entry(entry);
+        std::cout << "collapsed entry: " << entry << "\n";
     }
 }
+
+/**
+ * collapse_entry
+ * Collapses '..' and '.' entries from a path to get the shortest absolute path
+ * to a target directory
+ *
+ * @param path A valid path entry to be collapsed
+ */
+void collapse_entry(std::string& path) {
+
+    std::basic_string<char>::iterator character = path.begin();
+    std::vector<std::basic_string<char>::iterator> directoryEntries;
+
+    char lastChar[2] = {'\0', '\0'};
+    while (character != path.end())
+    {
+        std::cout << "working on char (" << *character << ")\n";
+        // ../
+        if (*character == '/' && lastChar[0] == '.' && lastChar[1] == '.') {
+            std::cout << "collapsing back directory\n";
+            // collapse
+            directoryEntries.pop_back();
+            collapse(directoryEntries.back(), character);
+            directoryEntries.pop_back();
+        }
+        else if (*character != '.' && lastChar[0] == '.' && (lastChar[1] != '.' || lastChar[1] != '\0')) {
+            std::cout << "clearing single .\n";
+            // clear './
+            collapse(directoryEntries.back(), character);
+            directoryEntries.pop_back();
+        }
+
+        if (*character == '/') {
+            std::cout << "moving pointer to next directory entry\n";
+            directoryEntries.push_back(character);
+        }
+        lastChar[1] = lastChar[0];
+        lastChar[0] = *character;
+        ++character;
+    }
+}
+
+
+/**
+ * collapse
+ * DESCRIPTION
+ * RETURN
+ */
+void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::iterator end) {
+    while (begin != end)
+    {
+        std::cout << "poping of char: " << *begin << "\n";
+        *begin = '\0';
+        ++begin;
+    }
+}
+
 
 /**
  * update_recent_directories
