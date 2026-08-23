@@ -20,8 +20,9 @@ void resolve_absolute_path(std::vector<std::string>& directories);
 void collapse_entry(std::string& path);
 void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::iterator end);
 
-static const char* HISTORY_PATH = "/home/ollie/.history";
-static const char* CONFIG_PATH = "/home/ollie/projects/personal/navigation/src/main/resources/recent_directories.json";
+std::string USER = std::getenv("USER");
+std::string HISTORY_PATH = "/home/" + USER + "/.history";
+std::string CONFIG_PATH = "/home/" + USER + "/projects/personal/navigate/src/main/resources/recent_directories.json";
 
 int main(int argc, char** argv) {
     std::cout << "Executing navigation clean up\n";
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
     int error;
     using_history();
 
-    error = read_history(HISTORY_PATH);
+    error = read_history(HISTORY_PATH.c_str());
     if (error - error) {
         std::cout << "error reading history: " << error << "\n";
         return error;
@@ -68,12 +69,12 @@ void read_target_directories(std::vector<std::string>& commands)
     {
         // std::cout << "raw entry: " << entry << "\n";
         if (entry == "cd") // TODO trim white space
-            entry = "/home/ollie/";
+            entry = "/home/" + USER + "/";
         else
             entry = entry.substr(3);
 
         if (entry.front() == '~')
-            entry.replace(0,2,std::string("/home/ollie/"));
+            entry.replace(0,2,std::string("/home/" + USER + "/"));
         // std::cout << "read entry: " << entry << "\n";
     }
 }

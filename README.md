@@ -33,7 +33,7 @@ startup() {
     history -c;
     rm ~/.history
     touch ~/.history
-    . /home/ollie/projects/personal/navigation/src/main/resources/recent_stops_initialize.sh
+    . /home/$USER/projects/personal/navigation/src/main/resources/recent_stops_initialize.sh
 }
 startup
 ```
@@ -41,7 +41,7 @@ Bash post-start:
 ```bash
 cleanup() {
     history -a ~/.history;
-    /home/ollie/projects/personal/navigation/build/recent-stops;
+    /home/$USER/projects/personal/navigation/build/recent-stops;
 }
 trap cleanup EXIT
 ```
