@@ -10,7 +10,8 @@
 #include "data_objects/directory.cpp"
 #include "io/configuration.cpp"
 
-static const char* CONFIG_PATH = "/home/ollie/projects/personal/navigation/src/main/resources/directories.json";
+std::string USER = std::getenv("USER");
+std::string CONFIG_PATH = "/home/" + USER + "/projects/personal/navigation/src/main/resources/directories.json";
 
 int main(int argc, char** argv)
 {
@@ -18,7 +19,7 @@ int main(int argc, char** argv)
     int countPreConfigured; // number of directories read from user configuration
     directory directories[10];
     try {
-        countPreConfigured = read_config(CONFIG_PATH, directories);
+        countPreConfigured = read_config(CONFIG_PATH.c_str(), directories);
 
     } catch (std::length_error& exception) {
         std::cerr << exception.what();

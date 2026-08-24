@@ -10,19 +10,22 @@ struct directory {
     std::string name;
     std::string path;
 };
+
+std::string USER = std::getenv("USER");
+std::string CONFIG_PATH = "/home/" + USER + "/projects/personal/navigation/src/main/resources/directories.json";
+
 /*
  * navigate
  * The main event loop for the navigate application
  */
 int navigate(int argc, char** argv) {
 
-    const char* configPath = "/home/ollie/projects/personal/navigation/src/main/resources/directories.json";
     directory directories[10];
     int count;
 
     // Read Config
     try {
-        count  = readConfig(configPath, directories);
+        count  = readConfig(CONFIG_PATH.c_str(), directories);
     } catch (std::length_error& exception) {
         std::cerr << exception.what();
     }
@@ -49,7 +52,7 @@ int navigate(int argc, char** argv) {
     for (int index = 0; index < std::size(directories); index++) {
         if (directories[index].abbreviation == selection) {
 
-            std::ofstream out("/home/ollie/projects/personal/navigation/src/main/resources/navigate_cmd.sh");
+            std::ofstream out(std::string("/home/" + USER + "/projects/personal/navigation/src/main/resources/navigate_cmd.sh"));
             out << "cd " << directories[index].path << "\n";
             std::cout << "Navigating to path: " << directories[index].path << "\n";
             out.close();
