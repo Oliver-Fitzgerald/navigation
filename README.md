@@ -1,8 +1,8 @@
 # navigate
 
-A command that returns a list of frequently entered directories that you can jump to
+A command that returns a list of frequently entered directories that you can then jump to
 
-## Set Up
+## Installation & Configuration
 
 ### Build Instructions
 
@@ -47,5 +47,7 @@ trap cleanup EXIT
 ```
 
 ## Documentation
+
+### Project Management
 
 Kanban board: [Navigate Task Tracker](https://trello.com/invite/b/6933157a10bc19df00c1c541/ATTI4e1b50a7d285798fb6ad819c88690ef60542044A/navigate)
