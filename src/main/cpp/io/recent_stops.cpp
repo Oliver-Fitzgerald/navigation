@@ -17,9 +17,9 @@
 
 void read_target_directories(std::vector<std::string>& commands);
 void resolve_absolute_path(std::vector<std::string>& directories);
-void collapse_entry(std::string& path);
+void collapse_all(std::string& path);
 void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::iterator end);
-void remove_empty_chars(std::string& path);
+void remove_null_chars(std::string& path);
 
 std::string USER = std::getenv("USER"); std::string HISTORY_PATH = "/home/" + USER + "/.history";
 std::string CONFIG_PATH = "/home/" + USER + "/projects/personal/navigate/src/main/resources/recent_directories.json";
@@ -122,60 +122,19 @@ void resolve_absolute_path(std::vector<std::string>& directories) {
         entrypoint = entry;
 
         // collapse '..' 
-        collapse_entry(entry);
+        collapse_all(entry);
         std::cout << "collapsed entry: " << entry << "\n";
     }
 }
 
 /**
- * collapse_entry
+ * collapse_all
  * Collapses '..' and '.' entries from a path to get the shortest absolute path
  * to a target directory
  *
  * @param path A valid absolute path entry to be collapsed
  */
-void collapse_entry(std::string& path) {
-
-    // duplicated logic with resolve_absolute_path but required for unit tests
-    if (path.back() != '/')
-        path.push_back('/');
-
-    std::basic_string<char>::iterator character = path.begin();
-    std::vector<std::basic_string<char>::iterator> checkpoint = { path.begin() }; 
-
-    char lastChar[2] = {'\0', '\0'};
-    while (character != path.end())
-    {
-        std::cout << "working on char (" << *character << ")\n";
-        // ../
-        if (*character == '/' && lastChar[0] == '.' && lastChar[1] == '.') {
-            std::cout << "collapsing back directory\n";
-            // collapse
-            checkpoint.pop_back();
-            collapse(checkpoint.back(), character);
-            checkpoint.pop_back();
-        }
-        else if (*character != '.' && lastChar[0] == '.' && (lastChar[1] != '.' || lastChar[1] != '\0')) {
-            std::cout << "clearing single .\n";
-            // clear './
-            collapse(checkpoint.back(), character);
-            checkpoint.pop_back();
-        }
-
-        if (*character == '/') {
-            std::cout << "moving pointer to next directory entry\n";
-            checkpoint.push_back(character);
-        }
-        lastChar[1] = lastChar[0];
-        lastChar[0] = *character;
-        ++character;
-    }
-}
-
-/**
- * collapse_entry_erase
- */
-void collapse_entry_erase(std::string& path) {
+void collapse_all(std::string& path) {
 
     std::basic_string<char>::iterator leadIterator = path.begin();
     std::vector<std::basic_string<char>::iterator> directoryEntries;
@@ -193,10 +152,16 @@ void collapse_entry_erase(std::string& path) {
         if (*leadIterator == '/') {
 
             if (lastChar[0] == '.' && lastChar[1] == '.') {
-                std::cout << "collapse\n";
+                std::cout << "collapse back\n";
                 collapse(directoryEntries[directoryEntries.size() - 2], leadIterator);
                 directoryEntries.pop_back();
                 hits = 0;
+            } else if (lastChar[0] == '/' && lastChar[1] == '.') {
+
+                std::cout << "collapse current\n";
+                collapse(directoryEntries[directoryEntries.size() - 1], leadIterator);
+                hits = 0;
+
             } else { 
                 hits++;
                 directoryEntries.push_back(leadIterator);
@@ -212,7 +177,7 @@ void collapse_entry_erase(std::string& path) {
         std::cout << "\'" << c << "\'";
     }
     std::cout << "\n";
-    remove_empty_chars(path);
+    remove_null_chars(path);
     for (char c : path) {
         std::cout << "\'" << c << "\'";
     }
@@ -235,11 +200,11 @@ void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::
 }
 
 /**
- * remove_empty_chars
+ * remove_null_chars
  * DESCRIPTION
  * RETURN
  */
-void remove_empty_chars(std::string& path) {
+void remove_null_chars(std::string& path) {
 
     std::basic_string<char>::iterator read = path.begin();
     std::basic_string<char>::iterator write = path.begin();
