@@ -2,20 +2,18 @@
 
 A command that returns a list of frequently entered directories that you can then jump to
 
+> [!IMPORTANT]  
+> This project is still in early stages of developement and not currently operational
+
+
 ## Installation & Configuration
 
 ### Build Instructions
 
 ```bash
-cd build;
-```
-
-```bash
-cmake ../;
-```
-
-```bash
-make;
+cd build && \
+cmake ../ && \
+make
 ```
 
 ### Configuring Bash Environment
