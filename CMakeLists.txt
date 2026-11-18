@@ -10,6 +10,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 include(FetchContent)
 
+
+if (NOT TARGET spdlog)
+    find_package(spdlog REQUIRED)
+endif()
+
 FetchContent_Declare(
     json
     GIT_REPOSITORY git@github.com:nlohmann/json.git
@@ -29,7 +34,7 @@ find_library(READLINE_LIB readline)
 # Application Executable Compilation
 add_executable(navigate ../src/main/cpp/main.cpp
                         ../src/main/cpp/util/binary_tree.cpp)
-target_link_libraries(navigate PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(navigate PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog_header_only)
 
 # For Development Purposes
 # add_executable(recent-stops ../src/main/cpp/io/recent_stops.cpp)
@@ -37,4 +42,4 @@ target_link_libraries(navigate PRIVATE nlohmann_json::nlohmann_json)
 
 # Testing
 add_executable(tests-recent-stops ../src/test/cpp/io/test_recent_stops.cpp)
-target_link_libraries(tests-recent-stops PRIVATE Catch2::Catch2WithMain ${HISTORY_LIB} ${READLINE_LIB})
+target_link_libraries(tests-recent-stops PRIVATE Catch2::Catch2WithMain ${HISTORY_LIB} ${READLINE_LIB} spdlog::spdlog_header_only)

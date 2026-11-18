@@ -1,7 +1,7 @@
 /*
  * recent_stop.cpp
- * Designed to be executed at the end of a bash session to
- * update a record with the directories visited in this session
+ * executed at the end of a bash session to update a record of the most
+ * frequently visited directories
  */
 
 // standard
@@ -14,6 +14,10 @@
 #include <iterator>
 // gnu
 #include <readline/history.h>
+// spdlog
+#include "spdlog/spdlog.h"
+// navigation
+#include "configuration.h"
 
 void read_target_directories(std::vector<std::string>& commands);
 void resolve_absolute_path(std::vector<std::string>& directories);
@@ -24,29 +28,30 @@ void remove_null_chars(std::string& path);
 std::string USER = std::getenv("USER"); std::string HISTORY_PATH = "/home/" + USER + "/.history";
 std::string CONFIG_PATH = "/home/" + USER + "/projects/personal/navigate/src/main/resources/recent_directories.json";
 
-// int main(int argc, char** argv) {
-//     std::cout << "Executing navigation clean up\n";
-//
-//     // initialization
-//     int error;
-//     using_history();
-//
-//     error = read_history(HISTORY_PATH.c_str());
-//     if (error - error) {
-//         std::cout << "error reading history: " << error << "\n";
-//         return error;
-//     }
-//
-//     // read cd commands from history
-//     std::vector<std::string> directories;
-//     read_target_directories(directories);
-//
-//     // get absolute path (if not explicit in command) TODO
-//     resolve_absolute_path(directories); 
-//
-//     // update directory frequency of visits TODO
-//     return 0;
-// }
+int main(int argc, char** argv) {
+    spdlog::debug("Executing navigation clean up");
+
+    // initialization
+    int error;
+    using_history();
+
+    error = read_history(HISTORY_PATH.c_str());
+    if (error - error) {
+        spdlog::debug("error reading history: {0}", error);
+        return error;
+    }
+
+    // read cd commands from history
+    std::vector<std::string> directories;
+    read_target_directories(directories);
+
+    // get absolute path (if not explicit in command)
+    resolve_absolute_path(directories); 
+
+    // update directory frequency of visits TODO
+
+    return 0;
+}
 
 /**
  * read_target_directories
@@ -67,7 +72,7 @@ void read_target_directories(std::vector<std::string>& commands)
     // extract target directory from entries
     for (std::string& entry : commands)
     {
-        // std::cout << "raw entry: " << entry << "\n";
+        spdlog::debug("raw entry: {0}",entry);
         if (entry == "cd") // TODO trim white space
             entry = "/home/" + USER + "/";
         else
@@ -75,7 +80,7 @@ void read_target_directories(std::vector<std::string>& commands)
 
         if (entry.front() == '~')
             entry.replace(0,2,std::string("/home/" + USER + "/"));
-        // std::cout << "read entry: " << entry << "\n";
+        spdlog::debug("read entry: {0}",entry);
     }
 }
 
@@ -98,32 +103,29 @@ void resolve_absolute_path(std::vector<std::string>& directories) {
         entrypoint.push_back('/');
     std::error_code errorCode;
 
-    for (std::string& entry: directories)
+    for (std::string& directory: directories)
     {
-        //  validate absolute path exists
-        if (entry.front() == '/') {
-
-            fs::path directoryPath(entry);
-            fs::directory_entry directory_entry(directoryPath, errorCode);
-
-        // construct absolute path for relative paths from entrypoint
-        } else {
-
-            entry = entrypoint + entry;
-            fs::path directoryPath(entry);
-            fs::directory_entry directory_entry(directoryPath, errorCode);
+        spdlog::info("resolving absolute path of directory: {0}", directory);
+        if (directory.front() != '/') {
+            directory = entrypoint + directory;
         }
 
-        std::cout << "entry: " << entry << "\n";
-        std::cout << "error value: " << errorCode.value() << "\n";
-        std::cout << "error value: " << errorCode.value() << "\n";
+        //  validate absolute path exists
+        fs::path directoryPath(directory);
+        spdlog::debug("directory: {0}", directory);
+        fs::directory_entry directory_entry(directoryPath, errorCode);
+        spdlog::debug("error value: {0}", errorCode.value());
 
-        if (errorCode.value() != 0) continue;
-        entrypoint = entry;
+        if (errorCode.value() != 0) {
+            spdlog::warn("The absolute path of the directory ({0}) cannot be resolved", directory);
+            continue;
+        }
 
-        // collapse '..' 
-        collapse_all(entry);
-        std::cout << "collapsed entry: " << entry << "\n";
+        entrypoint = directory;
+
+        // collapse all '..' && '.' entries in path
+        collapse_all(directory);
+        spdlog::info("absolute path resolved to: {0}", directory);
     }
 }
 
@@ -146,19 +148,19 @@ void collapse_all(std::string& path) {
 
     while (leadIterator != path.end())
     {
-        std::cout << "path: " << path << "\n";
-        std::cout << "char: " << *leadIterator << "\n";
+        spdlog::debug("path: {0}", path);
+        spdlog::debug("char: {0}", *leadIterator);
 
         if (*leadIterator == '/') {
 
             if (lastChar[0] == '.' && lastChar[1] == '.') {
-                std::cout << "collapse back\n";
+                spdlog::debug("collapse back");
                 collapse(directoryEntries[directoryEntries.size() - 2], leadIterator);
                 directoryEntries.pop_back();
                 hits = 0;
             } else if (lastChar[0] == '/' && lastChar[1] == '.') {
 
-                std::cout << "collapse current\n";
+                spdlog::debug("collapse current");
                 collapse(directoryEntries[directoryEntries.size() - 1], leadIterator);
                 hits = 0;
 
@@ -174,14 +176,13 @@ void collapse_all(std::string& path) {
     }
 
     for (char c : path) {
-        std::cout << "\'" << c << "\'";
+        spdlog::debug("\'{0}\'", c);
     }
-    std::cout << "\n";
+    spdlog::debug("\n");
     remove_null_chars(path);
     for (char c : path) {
-        std::cout << "\'" << c << "\'";
+        spdlog::debug("\'{0}\'", c);
     }
-    std::cout << "\n";
 }
 
 
@@ -193,7 +194,7 @@ void collapse_all(std::string& path) {
 void collapse(std::basic_string<char>::iterator begin, std::basic_string<char>::iterator end) {
     while (begin != end)
     {
-        std::cout << "poping of char: " << *begin << "\n";
+        spdlog::debug("poping off char: {0}", *begin);
         *begin = '\0';
         ++begin;
     }
@@ -222,7 +223,7 @@ void remove_null_chars(std::string& path) {
         read++;
     }
 
-    std::cout << index << "\n";
+    spdlog::debug("{0}",index);
     if (write != path.end())
         path.resize(index);
 }
@@ -238,10 +239,7 @@ void update_recent_directories() {
         std::ofstream file(CONFIG_PATH);
         for (int i = 0; i < 10; i++)
             file << i;
-        std::cout << "three";
     } catch (std::exception& exception) {
-        std::cout << "1\n";
-        std::cout << exception.what();
+        spdlog::debug(exception.what());
     }
-    std::cout << "2\n";
 }
